@@ -1,0 +1,402 @@
+name: CI/CD
+
+on:
+  push:
+    branches-ignore:
+      - dependabot/**
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        # github.event_name == 'workflow_dispatch'
+        # && github.event.inputs.release-version
+        description: >-
+          Target PEP440-compliant version to release.
+          Please, don't prepend `v`.
+        required: true
+      release-commitish:
+        # github.event_name == 'workflow_dispatch'
+        # && github.event.inputs.release-commitish
+        default: ""
+        description: >-
+          The commit to be released to PyPI and tagged
+          in Git as `release-version`. Normally, you
+          should keep this empty.
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  pre-setup:
+    name: ⚙️ Pre-set global build settings
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: python
+    outputs:
+      dist-version: >-
+        ${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-version
+        }}
+      is-untagged-devel: >-
+        ${{ steps.untagged-check.outputs.is-untagged-devel || false }}
+      release-requested: >-
+        ${{
+            steps.request-check.outputs.release-requested || false
+        }}
+      git-tag: ${{ steps.git-tag.outputs.tag }}
+      sdist-artifact-name: ${{ steps.artifact-name.outputs.sdist }}
+      wheel-artifact-name: ${{ steps.artifact-name.outputs.wheel }}
+    steps:
+      - name: Setup Python 3.12 and PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: >-
+            3.12
+      - name: >-
+          Mark the build as untagged '${{
+              github.event.repository.default_branch
+          }}' branch build
+        id: untagged-check
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == format(
+            'refs/heads/{0}', github.event.repository.default_branch
+          )
+        run: >-
+          echo "is-untagged-devel=true" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - name: Mark the build as "release request"
+        id: request-check
+        if: github.event_name == 'workflow_dispatch'
+        run: >-
+          echo "release-requested=true" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - name: Check out src from Git
+        if: >-
+          steps.request-check.outputs.release-requested != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.release-commitish }}
+      - name: Drop Git tags from HEAD for non-release requests
+        if: >-
+          steps.request-check.outputs.release-requested != 'true'
+        run: >-
+          git tag --points-at HEAD
+          |
+          xargs git tag --delete
+        shell: bash
+      - name: Set the current dist version from Git
+        if: steps.request-check.outputs.release-requested != 'true'
+        id: scm-version
+        run: >-
+          echo "dist-version=$(pdm show --version)" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - name: Set the target Git tag
+        id: git-tag
+        run: >-
+          echo "tag=v${{
+              steps.request-check.outputs.release-requested == 'true'
+              && github.event.inputs.release-version
+              || steps.scm-version.outputs.dist-version
+          }}" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - name: Set the expected dist artifact names
+        id: artifact-name
+        run: |
+          echo "sdist=aiolemmy-${{
+              steps.request-check.outputs.release-requested == 'true'
+              && github.event.inputs.release-version
+              || steps.scm-version.outputs.dist-version
+          }}.tar.gz" >> "$GITHUB_OUTPUT"
+          echo "wheel=aiolemmy-${{
+              steps.request-check.outputs.release-requested == 'true'
+              && github.event.inputs.release-version
+              || steps.scm-version.outputs.dist-version
+          }}-py3-none-any.whl" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+  build:
+    name: >-
+      👷 dists ${{ needs.pre-setup.outputs.git-tag }}
+      [mode: ${{
+        fromJSON(needs.pre-setup.outputs.is-untagged-devel)
+        && 'nightly' || ''
+      }}${{
+        fromJSON(needs.pre-setup.outputs.release-requested)
+        && 'release' || ''
+      }}${{
+        (
+          !fromJSON(needs.pre-setup.outputs.is-untagged-devel)
+          && !fromJSON(needs.pre-setup.outputs.release-requested)
+        ) && 'test' || ''
+      }}]
+    needs:
+      - pre-setup # transitive, for accessing settings
+
+    runs-on: ubuntu-latest
+
+    env:
+      PY_COLORS: 1
+
+    steps:
+      - name: Setup Python 3.12 and PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: >-
+            3.12
+      - name: Install build tools
+        run: >-
+          python -m
+          pip install
+          --user
+          --upgrade
+          build
+
+      - name: Grab the source from Git
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: >-
+            ${{
+                steps.request-check.outputs.release-requested == 'true'
+                && 1 || 0
+            }}
+          ref: ${{ github.event.inputs.release-commitish }}
+
+      - name: Setup git user as [bot]
+        if: >-
+          fromJSON(needs.pre-setup.outputs.is-untagged-devel)
+          || fromJSON(needs.pre-setup.outputs.release-requested)
+        uses: fregante/setup-git-user@77c1b5542f14ab6db4b8462d6857e31deb988b09
+      - name: >-
+          Tag the release in the local Git repo
+          as ${{ needs.pre-setup.outputs.git-tag }}
+          for setuptools-scm to set the desired version
+        if: >-
+          fromJSON(needs.pre-setup.outputs.is-untagged-devel)
+          || fromJSON(needs.pre-setup.outputs.release-requested)
+        run: >-
+          git tag
+          -m '${{ needs.pre-setup.outputs.git-tag }}'
+          '${{ needs.pre-setup.outputs.git-tag }}'
+          --
+          ${{ github.event.inputs.release-commitish }}
+      - name: Build dists
+        run: >-
+          python
+          -m
+          build
+      - name: Verify that the artifacts with expected names got created
+        run: >-
+          ls -1
+          'dist/${{ needs.pre-setup.outputs.sdist-artifact-name }}'
+          'dist/${{ needs.pre-setup.outputs.wheel-artifact-name }}'
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package-distributions
+          # NOTE: Exact expected file names are specified here
+          # NOTE: as a safety measure — if anything weird ends
+          # NOTE: up being in this dir or not all dists will be
+          # NOTE: produced, this will fail the workflow.
+          path: |
+            dist/${{ needs.pre-setup.outputs.sdist-artifact-name }}
+            dist/${{ needs.pre-setup.outputs.wheel-artifact-name }}
+          retention-days: 30
+
+  lint:
+    name: 🧹 Lint
+
+    needs:
+      - build
+      - pre-setup # transitive, for accessing settings
+
+    runs-on: ubuntu-latest
+
+    env:
+      PY_COLORS: 1
+
+    steps:
+      - name: Setup Python 3.12 and PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: >-
+            3.12
+
+      - name: Grab the source from Git
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.release-commitish }}
+
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Install build tools
+        run: >-
+          pdm install
+          --no-self
+          --dev
+          --group build
+          -v
+          &&
+          pdm info
+
+      - name: Check package description
+        run: >-
+          pdm run
+          python -m twine check --strict dist/*
+
+  check: # This job does nothing and is only used for the branch protection
+    if: always()
+
+    needs:
+      - lint
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@v1.2.2
+        with:
+          jobs: ${{ toJSON(needs) }}
+
+  publish-pypi:
+    name: Publish 🐍📦 ${{ needs.pre-setup.outputs.git-tag }} to PyPI
+    needs:
+      - check
+      - pre-setup # transitive, for accessing settings
+    if: >-
+      fromJSON(needs.pre-setup.outputs.release-requested)
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: >-
+        https://pypi.org/project/aiolemmy/${{
+          needs.pre-setup.outputs.dist-version
+        }}
+
+    permissions:
+      id-token: write # this permission is mandatory for trusted publishing
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: >-
+          Publish 🐍📦 ${{ needs.pre-setup.outputs.git-tag }} to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.6
+        with:
+          print-hash: true
+
+  publish-testpypi:
+    name: Publish 🐍📦 ${{ needs.pre-setup.outputs.git-tag }} to TestPyPI
+    needs:
+      - check
+      - pre-setup # transitive, for accessing settings
+    if: >-
+      fromJSON(needs.pre-setup.outputs.is-untagged-devel)
+      || fromJSON(needs.pre-setup.outputs.release-requested)
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: >-
+        https://test.pypi.org/project/aiolemmy/${{
+          needs.pre-setup.outputs.dist-version
+        }}
+
+    permissions:
+      id-token: write # this permission is mandatory for trusted publishing
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: >-
+          Publish 🐍📦 ${{ needs.pre-setup.outputs.git-tag }} to TestPyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.6
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          print-hash: true
+
+  post-release-repo-update:
+    name: >-
+      Publish post-release Git tag
+      for ${{ needs.pre-setup.outputs.git-tag }}
+    needs:
+      - publish-pypi
+      - pre-setup # transitive, for accessing settings
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch the src snapshot
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.inputs.release-commitish }}
+      - name: Setup git user as [bot]
+        uses: fregante/setup-git-user@77c1b5542f14ab6db4b8462d6857e31deb988b09
+
+      - name: >-
+          Tag the release in the local Git repo
+          as v${{ needs.pre-setup.outputs.git-tag }}
+        run: >-
+          git tag
+          -m '${{ needs.pre-setup.outputs.git-tag }}'
+          '${{ needs.pre-setup.outputs.git-tag }}'
+          --
+          ${{ github.event.inputs.release-commitish }}
+      - name: >-
+          Push ${{ needs.pre-setup.outputs.git-tag }} tag corresponding
+          to the just published release back to GitHub
+        run: >-
+          git push --atomic origin '${{ needs.pre-setup.outputs.git-tag }}'
+
+  publish-github-release:
+    name: >-
+      Publish a tag and GitHub release for
+      ${{ needs.pre-setup.outputs.git-tag }}
+    needs:
+      - post-release-repo-update
+      - pre-setup # transitive, for accessing settings
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      discussions: write
+
+    steps:
+      - name: Fetch the src snapshot
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.inputs.release-commitish }}
+
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: >-
+          Publish a GitHub Release for
+          ${{ needs.pre-setup.outputs.git-tag }}
+        uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e
+        with:
+          artifacts: |
+            dist/${{ needs.pre-setup.outputs.sdist-artifact-name }}
+            dist/${{ needs.pre-setup.outputs.wheel-artifact-name }}
+          artifactContentType: raw # Because whl and tgz are of different types
+          name: ${{ needs.pre-setup.outputs.git-tag }}
+          tag: ${{ needs.pre-setup.outputs.git-tag }}
