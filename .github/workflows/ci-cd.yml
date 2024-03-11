@@ -97,8 +97,10 @@ jobs:
         run: >-
           echo "dist-version=$(
           pdm show --version
-          |
-          cut -d+ -f1
+          ${{
+            steps.untagged-check.outputs.is-untagged-devel == 'true'
+            && '| cut -d+ -f1' ||''
+          }}
           )" >> "$GITHUB_OUTPUT"
         shell: bash
       - name: Set the target Git tag
