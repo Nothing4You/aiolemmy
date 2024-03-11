@@ -380,7 +380,6 @@ jobs:
 
     permissions:
       contents: write
-      discussions: write
 
     steps:
       - name: Fetch the src snapshot
