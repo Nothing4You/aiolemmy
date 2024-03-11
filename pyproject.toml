@@ -12,6 +12,11 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "AGPL-3.0-only"}
 
+[project.urls]
+"CI: GitHub" = "https://github.com/Nothing4You/aiolemmy/actions"
+"GitHub: repo" = "https://github.com/Nothing4You/aiolemmy"
+"GitHub: issues" = "https://github.com/Nothing4You/aiolemmy/issues"
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
