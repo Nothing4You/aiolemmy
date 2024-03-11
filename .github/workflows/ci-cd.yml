@@ -95,7 +95,11 @@ jobs:
         if: steps.request-check.outputs.release-requested != 'true'
         id: scm-version
         run: >-
-          echo "dist-version=$(pdm show --version)" >> "$GITHUB_OUTPUT"
+          echo "dist-version=$(
+          pdm show --version
+          |
+          cut -d+ -f1
+          )" >> "$GITHUB_OUTPUT"
         shell: bash
       - name: Set the target Git tag
         id: git-tag
