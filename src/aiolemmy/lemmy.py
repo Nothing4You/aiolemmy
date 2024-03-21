@@ -111,65 +111,209 @@ class Lemmy:
             **kwargs,
         )
 
+    async def _put(
+        self,
+        url: str,
+        /,
+        **kwargs: Any,
+    ) -> aiohttp.client.ClientResponse:
+        return await self._request(
+            "put",
+            url,
+            **kwargs,
+        )
+
     async def get_comment_reports(
         self,
         *,
         unresolved_only: bool = False,
         page: int = 1,
-        limit: int = 20,
-    ) -> Any:
-        params: Dict[str, Union[int, str]] = {
+        limit: Union[int, None] = 20,
+    ) -> Dict[int, Any]:
+        url = f"{self._instance_base_url}/api/v3/comment/report/list"
+        query: Dict[str, Union[int, str]] = {
             "page": page,
-            "limit": limit,
+            "limit": (
+                min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
+            ),
         }
         if unresolved_only:
-            params["unresolved_only"] = "true"
+            query["unresolved_only"] = "true"
 
-        r = await self._get(
-            f"{self._instance_base_url}/api/v3/comment/report/list",
-            params=params,
-        )
+        # report ids as keys to avoid double counting them
+        reports: Dict[int, Any] = {}
 
-        return await r.json()
+        # If viewing all reports, order by newest, but if viewing unresolved only, show the oldest first (FIFO)
+        # https://github.com/LemmyNet/lemmy/blob/0.19.3/crates/db_views/src/comment_report_view.rs#L108
+
+        j = None
+        broken = False
+        while not broken and (limit is None or len(reports) < limit):
+            if j is not None:
+                query["page"] += 1
+
+            logger.debug("Retrieving comment reports page %s", query["page"])
+            r = await self._get(url, params=query, raise_for_status=True)
+            j = await r.json()
+
+            if len(j["comment_reports"]) == 0:
+                break
+
+            for report in j["comment_reports"]:
+                if limit is not None and len(reports) >= limit:
+                    broken = True
+                    break
+
+                if report["comment_report"]["id"] not in reports:
+                    reports[report["comment_report"]["id"]] = report
+
+        logger.debug("Retrieved %s comment reports", len(reports))
+
+        return reports
 
     async def get_post_reports(
         self,
         *,
         unresolved_only: bool = False,
         page: int = 1,
-        limit: int = 20,
-    ) -> Any:
-        params: Dict[str, Union[int, str]] = {
+        limit: Union[int, None] = 20,
+    ) -> Dict[int, Any]:
+        url = f"{self._instance_base_url}/api/v3/post/report/list"
+        query: Dict[str, Union[int, str]] = {
             "page": page,
-            "limit": limit,
+            "limit": (
+                min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
+            ),
         }
         if unresolved_only:
-            params["unresolved_only"] = "true"
+            query["unresolved_only"] = "true"
 
-        r = await self._get(
-            f"{self._instance_base_url}/api/v3/post/report/list",
-            params=params,
-        )
+        # report ids as keys to avoid double counting them
+        reports: Dict[int, Any] = {}
 
-        return await r.json()
+        # If viewing all reports, order by newest, but if viewing unresolved only, show the oldest first (FIFO)
+        # https://github.com/LemmyNet/lemmy/blob/0.19.3/crates/db_views/src/comment_report_view.rs#L108
+
+        j = None
+        broken = False
+        while not broken and (limit is None or len(reports) < limit):
+            if j is not None:
+                query["page"] += 1
+
+            logger.debug("Retrieving post reports page %s", query["page"])
+            r = await self._get(url, params=query, raise_for_status=True)
+            j = await r.json()
+
+            if len(j["post_reports"]) == 0:
+                break
+
+            for report in j["post_reports"]:
+                if limit is not None and len(reports) >= limit:
+                    broken = True
+                    break
+
+                if report["post_report"]["id"] not in reports:
+                    reports[report["post_report"]["id"]] = report
+
+        logger.debug("Retrieved %s post reports", len(reports))
+
+        return reports
 
     async def get_private_message_reports(
         self,
         *,
         unresolved_only: bool = False,
         page: int = 1,
-        limit: int = 20,
-    ) -> Any:
-        params: Dict[str, Union[int, str]] = {
+        limit: Union[int, None] = 20,
+    ) -> Dict[int, Any]:
+        url = f"{self._instance_base_url}/api/v3/private_message/report/list"
+        query: Dict[str, Union[int, str]] = {
             "page": page,
-            "limit": limit,
+            "limit": (
+                min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
+            ),
         }
         if unresolved_only:
-            params["unresolved_only"] = "true"
+            query["unresolved_only"] = "true"
 
-        r = await self._get(
-            f"{self._instance_base_url}/api/v3/private_message/report/list",
-            params=params,
+        # report ids as keys to avoid double counting them
+        reports: Dict[int, Any] = {}
+
+        # If viewing all reports, order by newest, but if viewing unresolved only, show the oldest first (FIFO)
+        # https://github.com/LemmyNet/lemmy/blob/0.19.3/crates/db_views/src/comment_report_view.rs#L108
+
+        j = None
+        broken = False
+        while not broken and (limit is None or len(reports) < limit):
+            if j is not None:
+                query["page"] += 1
+
+            logger.debug("Retrieving private message reports page %s", query["page"])
+            r = await self._get(url, params=query, raise_for_status=True)
+            j = await r.json()
+
+            if len(j["private_message_reports"]) == 0:
+                break
+
+            for report in j["private_message_reports"]:
+                if limit is not None and len(reports) >= limit:
+                    broken = True
+                    break
+
+                if report["private_message_report"]["id"] not in reports:
+                    reports[report["private_message_report"]["id"]] = report
+
+        logger.debug("Retrieved %s private message reports", len(reports))
+
+        return reports
+
+    async def resolve_comment_report(
+        self,
+        report_id: int,
+        resolved: bool = True,
+    ) -> Any:
+        payload = {
+            "report_id": report_id,
+            "resolved": resolved,
+        }
+
+        r = await self._put(
+            f"{self._instance_base_url}/api/v3/comment/report/resolve",
+            json=payload,
+        )
+
+        return await r.json()
+
+    async def resolve_post_report(
+        self,
+        report_id: int,
+        resolved: bool = True,
+    ) -> Any:
+        payload = {
+            "report_id": report_id,
+            "resolved": resolved,
+        }
+
+        r = await self._put(
+            f"{self._instance_base_url}/api/v3/post/report/resolve",
+            json=payload,
+        )
+
+        return await r.json()
+
+    async def resolve_private_message_report(
+        self,
+        report_id: int,
+        resolved: bool = True,
+    ) -> Any:
+        payload = {
+            "report_id": report_id,
+            "resolved": resolved,
+        }
+
+        r = await self._put(
+            f"{self._instance_base_url}/api/v3/private_message/report/resolve",
+            json=payload,
         )
 
         return await r.json()
