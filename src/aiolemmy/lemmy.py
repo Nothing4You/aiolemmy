@@ -78,7 +78,7 @@ class Lemmy:
 
         if "timeout" not in kwargs:
             kwargs["timeout"] = aiohttp.client.ClientTimeout(
-                sock_connect=1,
+                sock_connect=5,
             )
 
         return await self._session.request(
