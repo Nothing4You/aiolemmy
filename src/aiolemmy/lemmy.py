@@ -365,27 +365,17 @@ class Lemmy:
             if j is not None:
                 if "next_page" in j:
                     query["page_cursor"] = j["next_page"]
+                elif "page" in query:
+                    query["page"] += 1
                 else:
-                    # Lemmy <0.19
-                    if "page" in query:
-                        query["page"] += 1
-                    else:
-                        query["page"] = 2
+                    query["page"] = 2
 
             r = await self._get(url, params=query, raise_for_status=False)
 
             if r.content_type == "text/plain":
                 t = await r.text()
-                # <0.19 Community is not known to this instance
-                if t == "Record not found":
-                    logger.info(
-                        "community %s does not exist on %s", community, self._domain
-                    )
-                    return []
-
-                else:
-                    r.raise_for_status()
-
+                # This should always have an error status
+                r.raise_for_status()
                 logger.warning("Invalid response while trying to retrieve posts: %r", t)
                 return []
 
@@ -397,12 +387,14 @@ class Lemmy:
 
             j = await r.json()
 
-            if "error" in j:
+            if "error" in j:  # noqa: SIM102
                 # 0.19+ Community is not known to this instance
-                # Removed and deleted communities will instead just return an empty posts array
+                # For removed and deleted communities we will just return an empty posts array
                 if j["error"] == "unknown" and j["message"] == "Record not found":
                     logger.info(
-                        "community %s does not exist on %s", community, self._domain
+                        "community %s does not exist on %s",
+                        community,
+                        self._domain,
                     )
                     return []
 
@@ -414,10 +406,6 @@ class Lemmy:
                 if count is not None and len(posts) == count:
                     logger.debug("break; found enough posts at %s", count)
                     break
-
-                # Lemmy <0.19 patch
-                if not post["post"]["published"].endswith("Z"):
-                    post["post"]["published"] += "Z"
 
                 if after is not None:
                     post_published = datetime.fromisoformat(post["post"]["published"])
