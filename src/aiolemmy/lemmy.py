@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from datetime import datetime
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any
 import urllib.parse
 
 import aiohttp.client
@@ -33,15 +35,15 @@ DEFAULT_USER_AGENT = f"aiolemmy/{version} (https://github.com/Nothing4You/aiolem
 
 
 class Lemmy:
-    _jwt: Union[str, None] = None
+    _jwt: str | None = None
 
     def __init__(
         self,
         session: aiohttp.client.ClientSession,
         instance_base_url: str,
         *,
-        user_agent: Union[str, None] = None,
-        jwt: Union[str, None] = None,
+        user_agent: str | None = None,
+        jwt: str | None = None,
     ) -> None:
         self._session = session
         self._common_headers = {
@@ -128,10 +130,10 @@ class Lemmy:
         *,
         unresolved_only: bool = False,
         page: int = 1,
-        limit: Union[int, None] = 20,
-    ) -> Dict[int, Any]:
+        limit: int | None = 20,
+    ) -> dict[int, Any]:
         url = f"{self._instance_base_url}/api/v3/comment/report/list"
-        query: Dict[str, Union[int, str]] = {
+        query: dict[str, int | str] = {
             "page": page,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -141,7 +143,7 @@ class Lemmy:
             query["unresolved_only"] = "true"
 
         # report ids as keys to avoid double counting them
-        reports: Dict[int, Any] = {}
+        reports: dict[int, Any] = {}
 
         # If viewing all reports, order by newest, but if viewing unresolved only, show the oldest first (FIFO)
         # https://github.com/LemmyNet/lemmy/blob/0.19.3/crates/db_views/src/comment_report_view.rs#L108
@@ -176,10 +178,10 @@ class Lemmy:
         *,
         unresolved_only: bool = False,
         page: int = 1,
-        limit: Union[int, None] = 20,
-    ) -> Dict[int, Any]:
+        limit: int | None = 20,
+    ) -> dict[int, Any]:
         url = f"{self._instance_base_url}/api/v3/post/report/list"
-        query: Dict[str, Union[int, str]] = {
+        query: dict[str, int | str] = {
             "page": page,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -189,7 +191,7 @@ class Lemmy:
             query["unresolved_only"] = "true"
 
         # report ids as keys to avoid double counting them
-        reports: Dict[int, Any] = {}
+        reports: dict[int, Any] = {}
 
         # If viewing all reports, order by newest, but if viewing unresolved only, show the oldest first (FIFO)
         # https://github.com/LemmyNet/lemmy/blob/0.19.3/crates/db_views/src/comment_report_view.rs#L108
@@ -224,10 +226,10 @@ class Lemmy:
         *,
         unresolved_only: bool = False,
         page: int = 1,
-        limit: Union[int, None] = 20,
-    ) -> Dict[int, Any]:
+        limit: int | None = 20,
+    ) -> dict[int, Any]:
         url = f"{self._instance_base_url}/api/v3/private_message/report/list"
-        query: Dict[str, Union[int, str]] = {
+        query: dict[str, int | str] = {
             "page": page,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -237,7 +239,7 @@ class Lemmy:
             query["unresolved_only"] = "true"
 
         # report ids as keys to avoid double counting them
-        reports: Dict[int, Any] = {}
+        reports: dict[int, Any] = {}
 
         # If viewing all reports, order by newest, but if viewing unresolved only, show the oldest first (FIFO)
         # https://github.com/LemmyNet/lemmy/blob/0.19.3/crates/db_views/src/comment_report_view.rs#L108
@@ -325,7 +327,7 @@ class Lemmy:
         page: int = 1,
         limit: int = 20,
     ) -> Any:
-        params: Dict[str, Union[int, str]] = {
+        params: dict[str, int | str] = {
             "page": page,
             "limit": limit,
         }
@@ -342,8 +344,8 @@ class Lemmy:
     async def get_community_posts(
         self,
         community: str,
-        count: Union[int, None] = 100,
-        after: Union[datetime, None] = None,
+        count: int | None = 100,
+        after: datetime | None = None,
     ) -> Any:
         url = f"{self._instance_base_url}/api/v3/post/list"
         query = {
@@ -353,7 +355,7 @@ class Lemmy:
             "community_name": community,
         }
 
-        posts: List[Any] = []
+        posts: list[Any] = []
 
         j = None
         broken = False
@@ -441,10 +443,10 @@ class Lemmy:
 
     async def get_person_details(
         self,
-        username: Union[str, None] = None,
-        person_id: Union[int, None] = None,
-        sort: Union[str, None] = None,
-        limit: Union[int, None] = 20,
+        username: str | None = None,
+        person_id: int | None = None,
+        sort: str | None = None,
+        limit: int | None = 20,
     ) -> Any:
         if username is None and person_id is None:
             raise Exception("username or person_id must be provided")
@@ -474,8 +476,8 @@ class Lemmy:
         moderates = None
 
         # content ids as keys to avoid double counting content if new content was added during pagination
-        posts: Dict[str, Any] = {}
-        comments: Dict[str, Any] = {}
+        posts: dict[str, Any] = {}
+        comments: dict[str, Any] = {}
 
         j = None
         broken = False
@@ -523,9 +525,9 @@ class Lemmy:
         self,
         post_id: int,
         removed: bool,
-        reason: Union[str, None] = None,
+        reason: str | None = None,
     ) -> Any:
-        payload: Dict[str, Union[int, bool, str]] = {
+        payload: dict[str, int | bool | str] = {
             "post_id": post_id,
             "removed": removed,
         }
@@ -543,9 +545,9 @@ class Lemmy:
         self,
         comment_id: int,
         removed: bool,
-        reason: Union[str, None] = None,
+        reason: str | None = None,
     ) -> Any:
-        payload: Dict[str, Union[int, bool, str]] = {
+        payload: dict[str, int | bool | str] = {
             "comment_id": comment_id,
             "removed": removed,
         }
@@ -562,12 +564,12 @@ class Lemmy:
     async def ban_from_site(
         self,
         person_id: int,
-        ban: Union[bool, None] = True,
-        reason: Union[str, None] = None,
-        expires: Union[int, None] = None,
-        remove_data: Union[bool, None] = None,
+        ban: bool | None = True,
+        reason: str | None = None,
+        expires: int | None = None,
+        remove_data: bool | None = None,
     ) -> Any:
-        payload: Dict[str, Union[int, bool, str]] = {
+        payload: dict[str, int | bool | str] = {
             "person_id": person_id,
         }
         if ban is not None:
@@ -590,12 +592,12 @@ class Lemmy:
         self,
         person_id: int,
         community_id: int,
-        ban: Union[bool, None] = True,
-        reason: Union[str, None] = None,
-        expires: Union[int, None] = None,
-        remove_data: Union[bool, None] = None,
+        ban: bool | None = True,
+        reason: str | None = None,
+        expires: int | None = None,
+        remove_data: bool | None = None,
     ) -> Any:
-        payload: Dict[str, Union[int, bool, str]] = {
+        payload: dict[str, int | bool | str] = {
             "person_id": person_id,
             "community_id": community_id,
         }
@@ -617,14 +619,14 @@ class Lemmy:
 
     async def get_modlog(
         self,
-        community_id: Union[int, None] = None,
-        mod_person_id: Union[int, None] = None,
-        other_person_id: Union[int, None] = None,
-        type_: Union[str, None] = None,
-        limit: Union[int, None] = 20,
-    ) -> Dict[str, Dict[int, Any]]:
+        community_id: int | None = None,
+        mod_person_id: int | None = None,
+        other_person_id: int | None = None,
+        type_: str | None = None,
+        limit: int | None = 20,
+    ) -> dict[str, dict[int, Any]]:
         url = f"{self._instance_base_url}/api/v3/modlog"
-        query: Dict[str, Union[int, str]] = {
+        query: dict[str, int | str] = {
             "page": 1,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -641,7 +643,7 @@ class Lemmy:
 
         # modlog record ids as keys by type to avoid double counting content if new content was added during pagination
         # modlog_reports[record_type][record_id]
-        modlog_records: Dict[str, Dict[int, Any]] = {}
+        modlog_records: dict[str, dict[int, Any]] = {}
 
         # Lemmy returns modlog entries by descending published date
 
