@@ -125,6 +125,117 @@ class Lemmy:
             **kwargs,
         )
 
+    async def list_communities(
+        self,
+        *,
+        limit: int | None = None,
+        page: int | None = None,
+        show_nsfw: bool | None = None,
+        sort: str | None = None,
+        type_: str | None = None,
+    ) -> aiohttp.ClientResponse:
+        url = f"{self._instance_base_url}/api/v3/community/list"
+        query: dict[str, int | str] = {}
+
+        if limit is not None:
+            query["limit"] = limit
+        if page is not None:
+            query["page"] = page
+        if show_nsfw is not None:
+            query["show_nsfw"] = str(show_nsfw).lower()
+        if sort is not None:
+            query["sort"] = sort
+        if type_ is not None:
+            query["type_"] = type_
+
+        return await self._get(url, params=query, raise_for_status=False)
+
+    async def list_posts(
+        self,
+        *,
+        community_id: int | None = None,
+        community_name: str | None = None,
+        disliked_only: bool | None = None,
+        liked_only: bool | None = None,
+        limit: int | None = None,
+        page: int | None = None,
+        page_cursor: str | None = None,
+        saved_only: bool | None = None,
+        sort: str | None = None,
+        type_: str | None = None,
+    ) -> aiohttp.ClientResponse:
+        url = f"{self._instance_base_url}/api/v3/post/list"
+        query: dict[str, int | str] = {}
+
+        if community_id is not None:
+            query["community_id"] = community_id
+        if community_name is not None:
+            query["community_name"] = community_name
+        if disliked_only is not None:
+            query["disliked_only"] = str(disliked_only).lower()
+        if liked_only is not None:
+            query["liked_only"] = str(liked_only).lower()
+        if limit is not None:
+            query["limit"] = limit
+        if page is not None:
+            query["page"] = page
+        if page_cursor is not None:
+            query["page_cursor"] = page_cursor
+        if saved_only is not None:
+            query["saved_only"] = str(saved_only).lower()
+        if sort is not None:
+            query["sort"] = sort
+        if type_ is not None:
+            query["type_"] = type_
+
+        return await self._get(url, params=query, raise_for_status=False)
+
+    async def list_comments(
+        self,
+        *,
+        community_id: int | None = None,
+        community_name: str | None = None,
+        disliked_only: bool | None = None,
+        liked_only: bool | None = None,
+        limit: int | None = None,
+        max_depth: int | None = None,
+        page: int | None = None,
+        parent_id: int | None = None,
+        post_id: int | None = None,
+        saved_only: bool | None = None,
+        sort: str | None = None,
+        type_: str | None = None,
+    ) -> aiohttp.ClientResponse:
+        url = f"{self._instance_base_url}/api/v3/comment/list"
+        query: dict[str, int | str] = {}
+
+        if community_id is not None:
+            query["community_id"] = community_id
+        if community_name is not None:
+            query["community_name"] = community_name
+        if disliked_only is not None:
+            query["disliked_only"] = str(disliked_only).lower()
+        if liked_only is not None:
+            query["liked_only"] = str(liked_only).lower()
+        if limit is not None:
+            query["limit"] = limit
+        if max_depth is not None:
+            query["max_depth"] = max_depth
+        if page is not None:
+            query["page"] = page
+        if parent_id is not None:
+            query["parent_id"] = parent_id
+        if post_id is not None:
+            query["post_id"] = post_id
+        if saved_only is not None:
+            query["saved_only"] = str(saved_only).lower()
+        if sort is not None:
+            query["sort"] = sort
+        if type_ is not None:
+            query["type_"] = type_
+
+        return await self._get(url, params=query, raise_for_status=False)
+
     async def get_comment_reports(
         self,
         *,
@@ -341,6 +452,7 @@ class Lemmy:
 
         return await r.json()
 
+    # TODO: this should use list_posts()
     async def get_community_posts(
         self,
         community: str,
