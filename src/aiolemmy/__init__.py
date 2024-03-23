@@ -1,5 +1,5 @@
-from .lemmy import Lemmy
 from ._version import version
+from .lemmy import Lemmy
 
 __version__ = version
 
