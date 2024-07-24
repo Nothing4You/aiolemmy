@@ -688,6 +688,25 @@ class Lemmy:
 
         return await r.json()
 
+    async def add_mod_to_community(
+        self,
+        community_id: int,
+        person_id: int,
+        added: bool = True,
+    ) -> Any:
+        payload: dict[str, int | bool] = {
+            "added": added,
+            "person_id": person_id,
+            "community_id": community_id,
+        }
+
+        r = await self._post(
+            f"{self._instance_base_url}/api/v3/community/mod",
+            json=payload,
+        )
+
+        return await r.json()
+
     async def ban_from_community(
         self,
         person_id: int,
@@ -712,6 +731,27 @@ class Lemmy:
 
         r = await self._post(
             f"{self._instance_base_url}/api/v3/community/ban_user",
+            json=payload,
+        )
+
+        return await r.json()
+
+    async def remove_community(
+        self,
+        community_id: int,
+        removed: bool = True,
+        reason: str | None = None,
+    ) -> Any:
+        payload: dict[str, int | bool | str] = {
+            "community_id": community_id,
+            "removed": removed,
+        }
+
+        if reason is not None:
+            payload["reason"] = reason
+
+        r = await self._post(
+            f"{self._instance_base_url}/api/v3/community/remove",
             json=payload,
         )
 
