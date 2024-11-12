@@ -12,12 +12,6 @@ repos:
     rev: 2.17.1
     hooks:
       - id: pdm-lock-check
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.16.0
-    hooks:
-      - id: pyupgrade
-        args:
-          - --py38-plus
   - repo: local
     hooks:
       - id: prettier
