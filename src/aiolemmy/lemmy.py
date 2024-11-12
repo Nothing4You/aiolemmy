@@ -757,6 +757,27 @@ class Lemmy:
 
         return await r.json()
 
+    async def hide_community(
+        self,
+        community_id: int,
+        hidden: bool = True,
+        reason: str | None = None,
+    ) -> Any:
+        payload: dict[str, int | bool | str] = {
+            "community_id": community_id,
+            "hidden": hidden,
+        }
+
+        if reason is not None:
+            payload["reason"] = reason
+
+        r = await self._put(
+            f"{self._instance_base_url}/api/v3/community/hide",
+            json=payload,
+        )
+
+        return await r.json()
+
     async def get_modlog(
         self,
         community_id: int | None = None,
