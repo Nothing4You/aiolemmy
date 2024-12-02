@@ -582,7 +582,7 @@ class Lemmy:
         j = None
         broken = False
         while not broken and (
-            limit is None or len(posts) < limit and len(comments) < limit
+            limit is None or (len(posts) < limit and len(comments) < limit)
         ):
             if j is not None:
                 query["page"] += 1
