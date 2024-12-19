@@ -865,3 +865,18 @@ class Lemmy:
         )
 
         return await r.json()
+
+    async def get_site(self) -> Any:
+        r = await self._get(
+            f"{self._instance_base_url}/api/v3/site",
+        )
+
+        return await r.json()
+
+    async def edit_site(self, **kwargs: Any) -> Any:
+        r = await self._put(
+            f"{self._instance_base_url}/api/v3/site",
+            json=kwargs,
+        )
+
+        return await r.json()
