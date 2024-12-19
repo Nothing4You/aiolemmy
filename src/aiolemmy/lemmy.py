@@ -847,3 +847,21 @@ class Lemmy:
             raise_for_status=False,
         )
         return await r.json()
+
+    async def get_federated_instances(self) -> Any:
+        r = await self._get(
+            f"{self._instance_base_url}/api/v3/federated_instances",
+        )
+
+        return await r.json()
+
+    async def block_instance(self, instance_id: int, block: bool) -> Any:
+        r = await self._post(
+            f"{self._instance_base_url}/api/v3/site/block",
+            json={
+                "instance_id": instance_id,
+                "block": block,
+            },
+        )
+
+        return await r.json()
