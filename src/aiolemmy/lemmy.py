@@ -661,6 +661,51 @@ class Lemmy:
 
         return await r.json()
 
+    async def report_post(
+        self,
+        post_id: int,
+        reason: str,
+    ) -> Any:
+        r = await self._post(
+            f"{self._instance_base_url}/api/v3/post/report",
+            json={
+                "post_id": post_id,
+                "reason": reason,
+            },
+        )
+
+        return await r.json()
+
+    async def report_comment(
+        self,
+        comment_id: int,
+        reason: str,
+    ) -> Any:
+        r = await self._post(
+            f"{self._instance_base_url}/api/v3/comment/report",
+            json={
+                "comment_id": comment_id,
+                "reason": reason,
+            },
+        )
+
+        return await r.json()
+
+    async def report_private_message(
+        self,
+        private_message_id: int,
+        reason: str,
+    ) -> Any:
+        r = await self._post(
+            f"{self._instance_base_url}/api/v3/private_message/report",
+            json={
+                "private_message_id": private_message_id,
+                "reason": reason,
+            },
+        )
+
+        return await r.json()
+
     async def ban_from_site(
         self,
         person_id: int,
