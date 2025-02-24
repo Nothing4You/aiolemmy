@@ -3,9 +3,19 @@ from __future__ import annotations
 import logging
 import urllib.parse
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aiohttp.client
+
+if TYPE_CHECKING:
+    from _typed_dicts import (
+        GetApiV3CommentReportListParams,
+        GetApiV3ModlogParams,
+        GetApiV3PostListParams,
+        GetApiV3PostReportListParams,
+        GetApiV3PrivateMessageReportListParams,
+        GetApiV3UserParams,
+    )
 
 from ._version import version
 
@@ -244,7 +254,7 @@ class Lemmy:
         limit: int | None = 20,
     ) -> dict[int, Any]:
         url = f"{self._instance_base_url}/api/v3/comment/report/list"
-        query: dict[str, int | str] = {
+        query: GetApiV3CommentReportListParams = {
             "page": page,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -292,7 +302,7 @@ class Lemmy:
         limit: int | None = 20,
     ) -> dict[int, Any]:
         url = f"{self._instance_base_url}/api/v3/post/report/list"
-        query: dict[str, int | str] = {
+        query: GetApiV3PostReportListParams = {
             "page": page,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -340,7 +350,7 @@ class Lemmy:
         limit: int | None = 20,
     ) -> dict[int, Any]:
         url = f"{self._instance_base_url}/api/v3/private_message/report/list"
-        query: dict[str, int | str] = {
+        query: GetApiV3PrivateMessageReportListParams = {
             "page": page,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -460,7 +470,7 @@ class Lemmy:
         after: datetime | None = None,
     ) -> Any:
         url = f"{self._instance_base_url}/api/v3/post/list"
-        query = {
+        query: GetApiV3PostListParams = {
             "limit": 20,
             "sort": "New",
             "type_": "All",
@@ -560,7 +570,7 @@ class Lemmy:
         )
 
         url = f"{self._instance_base_url}/api/v3/user"
-        query = {
+        query: GetApiV3UserParams = {
             "sort": sort if sort is not None else "New",
             "page": 1,
             "limit": (
@@ -611,7 +621,7 @@ class Lemmy:
                     break
                 comments[comment["comment"]["id"]] = comment
 
-            if len(j["posts"]) < query["limit"] and len(j["comments"]) < query["limit"]:  # type: ignore[operator]
+            if len(j["posts"]) < query["limit"] and len(j["comments"]) < query["limit"]:
                 break
 
         return {
@@ -832,7 +842,7 @@ class Lemmy:
         limit: int | None = 20,
     ) -> dict[str, dict[int, Any]]:
         url = f"{self._instance_base_url}/api/v3/modlog"
-        query: dict[str, int | str] = {
+        query: GetApiV3ModlogParams = {
             "page": 1,
             "limit": (
                 min(limit, PAGE_LIMIT_MAX) if limit is not None else PAGE_LIMIT_MAX
@@ -880,7 +890,7 @@ class Lemmy:
                         break
                     modlog_records[k][record[MODLOG_TYPES[k]]["id"]] = record
 
-            if all(k in j and len(j[k]) < query["limit"] for k in MODLOG_TYPES):  # type: ignore[operator]
+            if all(k in j and len(j[k]) < query["limit"] for k in MODLOG_TYPES):
                 break
 
         return modlog_records
