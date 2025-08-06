@@ -242,7 +242,7 @@ jobs:
           ref: ${{ github.event.inputs.release-commitish }}
 
       - name: Download all the dists
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.pre-setup.outputs.dists-artifact-name }}
           path: dist/
@@ -296,7 +296,7 @@ jobs:
 
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.pre-setup.outputs.dists-artifact-name }}
           path: dist/
@@ -327,7 +327,7 @@ jobs:
 
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.pre-setup.outputs.dists-artifact-name }}
           path: dist/
@@ -391,7 +391,7 @@ jobs:
           ref: ${{ github.event.inputs.release-commitish }}
 
       - name: Download all the dists
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.pre-setup.outputs.dists-artifact-name }}
           path: dist/
