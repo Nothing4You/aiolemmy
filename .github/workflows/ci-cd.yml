@@ -354,7 +354,7 @@ jobs:
           fetch-depth: 1
           ref: ${{ github.event.inputs.release-commitish }}
       - name: Setup git user as [bot]
-        uses: fregante/setup-git-user@024bc0b8e177d7e77203b48dab6fb45666854b35
+        uses: fregante/setup-git-user@024bc0b8e177d7e77203b48dab6fb45666854b35 # v2.0.2
 
       - name: >-
           Tag the release in the local Git repo
