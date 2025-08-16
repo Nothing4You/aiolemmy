@@ -1,0 +1,16 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended", ":disableDependencyDashboard"],
+  prConcurrentLimit: 5,
+  prHourlyLimit: 0,
+  separateMinorPatch: true,
+  stabilityDays: 14,
+  pinDigests: true,
+  packageRules: [
+    {
+      description: "Schedule digest updates monthly",
+      matchUpdateTypes: ["digest"],
+      schedule: ["every 1 months"],
+    },
+  ],
+}
