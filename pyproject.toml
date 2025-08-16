@@ -22,17 +22,13 @@ license = {text = "AGPL-3.0-only"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-
-[tool.pdm]
-distribution = true
-
 [tool.pdm.version]
 source = "scm"
 write_to = "aiolemmy/_scm_version.py"
 write_template = "__version__ = '{}'"
 
-[tool.pdm.dev-dependencies]
-build = [
+[dependency-groups]
+dev = [
     "build>=1.1.1",
     "twine>=5.0.0",
 ]
