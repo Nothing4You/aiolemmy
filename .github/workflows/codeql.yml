@@ -2,9 +2,11 @@ name: "CodeQL"
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
+    branches:
+      - main
   #schedule:
   #  - cron: "17 21 * * 1"
 
@@ -20,7 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [python]
+        language:
+          - actions
+          - python
 
     steps:
       - name: Checkout
