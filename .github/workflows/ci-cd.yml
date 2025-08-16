@@ -28,6 +28,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   pre-setup:
     name: ⚙️ Pre-set global build settings
@@ -346,6 +349,9 @@ jobs:
       - publish-pypi
       - pre-setup # transitive, for accessing settings
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Fetch the src snapshot
