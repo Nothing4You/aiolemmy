@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp.client
 
 if TYPE_CHECKING:
-    from _typed_dicts import (
+    from aiolemmy._typed_dicts import (
         GetApiV3CommentReportListParams,
         GetApiV3ModlogParams,
         GetApiV3PostListParams,

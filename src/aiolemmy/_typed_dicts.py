@@ -9,7 +9,7 @@ else:
     from typing_extensions import NotRequired
 
 if TYPE_CHECKING:
-    from _enum_types import ListingType, SortType
+    from aiolemmy._enum_types import ListingType, SortType
 
 
 class GetApiV3CommentReportListParams(TypedDict):
