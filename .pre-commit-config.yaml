@@ -8,10 +8,10 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
-  - repo: https://github.com/pdm-project/pdm
-    rev: b15b67f03c3b98639778eb12db2794a9bce6bdbb # frozen: 2.25.6
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 1fbedf73c5ee2f6d6cbe1e9ba9c738b0458f29ce # frozen: 0.8.11
     hooks:
-      - id: pdm-lock-check
+      - id: uv-lock
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: 5ba47274f9b181bce26a5150a725577f3c336011 # frozen: v3.6.2
     hooks:

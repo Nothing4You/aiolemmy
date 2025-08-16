@@ -13,4 +13,14 @@
       schedule: ["every 1 months"],
     },
   ],
+  // https://github.com/renovatebot/renovate/discussions/24774#discussioncomment-7155150
+  customManagers: [
+    {
+      customType: "regex",
+      fileMatch: ["^\\.github\\/workflows\\/.*\\.ya?ml$"],
+      matchStrings: ["\bversion: '(?<currentValue>.+?)' # renovate: uv$"],
+      depNameTemplate: "uv",
+      datasourceTemplate: "pypi",
+    },
+  ],
 }
