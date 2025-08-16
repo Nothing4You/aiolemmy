@@ -82,6 +82,7 @@ extend-ignore = [
     "TD003",
 ]
 
-[tool.mypy]
-strict = true
-ignore_missing_imports = true
+[tool.ty.rules]
+division-by-zero = "error"
+unused-ignore-comment = "error"
+possibly-unresolved-reference = "error"

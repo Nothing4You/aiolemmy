@@ -8,14 +8,17 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 1fbedf73c5ee2f6d6cbe1e9ba9c738b0458f29ce # frozen: 0.8.11
     hooks:
       - id: uv-lock
+
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: 5ba47274f9b181bce26a5150a725577f3c336011 # frozen: v3.6.2
     hooks:
       - id: prettier
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: 54a455f7ce629598b7535ff828fd5fb796f4b83f # frozen: v0.12.9
     hooks:
@@ -26,13 +29,14 @@ repos:
           - --show-fixes
       # Run the formatter.
       - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 412de98d50e846f31ea6f4b0ad036f2c24a7a024 # frozen: v1.17.1
+
+  - repo: local
     hooks:
-      - id: mypy
-        args:
-          - --strict
-          - --python-version
-          - "3.9"
+      - id: ty
+        name: ty-check
+        language: python
+        entry: ty check
+        pass_filenames: false
         additional_dependencies:
-          - aiohttp>=3.9.3
+          - ty==0.0.1a18
+          - aiohttp==3.9.3
