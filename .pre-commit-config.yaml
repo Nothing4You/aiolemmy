@@ -2,14 +2,14 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b # frozen: v5.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/pdm-project/pdm
-    rev: 672900d47c8c7b3507158f7dfc749a079dba6a77 # frozen: 2.24.2
+    rev: b15b67f03c3b98639778eb12db2794a9bce6bdbb # frozen: 2.25.6
     hooks:
       - id: pdm-lock-check
   - repo: https://github.com/rbubley/mirrors-prettier
@@ -17,7 +17,7 @@ repos:
     hooks:
       - id: prettier
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 76e47323a83cd9795e4ff9a1de1c0d2eef610f17 # frozen: v0.11.11
+    rev: 54a455f7ce629598b7535ff828fd5fb796f4b83f # frozen: v0.12.9
     hooks:
       # Run the linter.
       - id: ruff
@@ -27,7 +27,7 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: f40886d54c729f533f864ed6ce584e920feb0af7 # frozen: v1.15.0
+    rev: 0f86793af5ef5f6dc63c8d04a3cabfa3ea8f9c6a # frozen: v1.16.1
     hooks:
       - id: mypy
         args:
