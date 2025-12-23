@@ -10,7 +10,7 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 1fbedf73c5ee2f6d6cbe1e9ba9c738b0458f29ce # frozen: 0.8.11
+    rev: e90530d2cface051bb46cbd33f2362558e5ee9fb # frozen: 0.9.18
     hooks:
       - id: uv-lock
 
