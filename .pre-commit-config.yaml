@@ -10,7 +10,7 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: e90530d2cface051bb46cbd33f2362558e5ee9fb # frozen: 0.9.18
+    rev: e5ef0574ef824f2a51084062e6506068e458126e  # frozen: 0.9.24
     hooks:
       - id: uv-lock
 
@@ -20,7 +20,7 @@ repos:
       - id: prettier
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 5ba58aca0bd5bc7c0e1c0fc45af2e88d6a2bde83 # frozen: v0.14.10
+    rev: 6ce4b4fc349b8881cbce40207dac3bf78824a88e  # frozen: v0.14.11
     hooks:
       # Run the linter.
       - id: ruff-check
