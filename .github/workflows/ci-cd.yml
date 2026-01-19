@@ -97,7 +97,7 @@ jobs:
         uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
         with:
           enable-cache: true
-          version: 0.9.17 # renovate: uv
+          version: 0.9.21 # renovate: uv
 
       # TODO: migrate this to native uv once supported
       - name: Set the current dist version from Git
@@ -180,7 +180,7 @@ jobs:
         uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
         with:
           enable-cache: true
-          version: 0.9.17 # renovate: uv
+          version: 0.9.21 # renovate: uv
 
       - name: Setup git user as [bot]
         if: >-
@@ -258,7 +258,7 @@ jobs:
         uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
         with:
           enable-cache: true
-          version: 0.9.17 # renovate: uv
+          version: 0.9.21 # renovate: uv
 
       - name: Check package description
         run: >-
