@@ -10,17 +10,17 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 7720020191168f707a43279c65b6bf9cdf7ed04e  # frozen: 0.12.10
+    rev: 7720020191168f707a43279c65b6bf9cdf7ed04e # frozen: 0.12.10
     hooks:
       - id: uv-lock
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: 0ee178619d696787ca73d210cc191d720868c631  # frozen: v3.9.6
+    rev: 0ee178619d696787ca73d210cc191d720868c631 # frozen: v3.9.6
     hooks:
       - id: prettier
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 321478e58f4938179c6b86e4ddfa923d1547a49b  # frozen: v0.16.6
+    rev: 321478e58f4938179c6b86e4ddfa923d1547a49b # frozen: v0.16.6
     hooks:
       # Run the linter.
       - id: ruff-check
